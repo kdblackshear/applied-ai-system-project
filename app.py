@@ -2,9 +2,9 @@ import streamlit as st
 from datetime import datetime
 from pawpal_system import Owner, OwnerPreferences, Pet, Task, Scheduler
 
-st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
+st.set_page_config(page_title="PawPal+ AI", page_icon="🐾", layout="centered")
 
-st.title("🐾 PawPal+")
+st.title("🐾 PawPal+ : AI-Powered Pet Care Planner")
 
 # --- Initialize Session State Backend ---
 if "scheduler" not in st.session_state:
@@ -59,124 +59,143 @@ with st.sidebar:
 st.divider()
 
 # --- Main App Inputs: Quick Task Creator ---
-st.subheader("Quick Task Creator")
-st.caption("Add tasks to your registered pets to feed into the smart scheduler.")
 
-if not scheduler.owner.pets:
-    st.warning("⚠️ Please register at least one pet in the sidebar before adding tasks.")
-else:
-    with st.form("task_creation_form"):
-        col1, col2 = st.columns(2)
-        with col1:
-            pet_choices = {p.name: p.pet_id for p in scheduler.owner.pets.values()}
-            selected_pet_name = st.selectbox("Assign to Pet", list(pet_choices.keys()))
-            target_pet_id = pet_choices[selected_pet_name]
-            
-            task_id = st.text_input("Task ID", value=f"t{len(scheduler.owner.get_all_tasks()) + 1}")
-            task_description = st.text_input("Task Description", value="Morning walk")
-            
-        with col2:
-            category = st.selectbox("Category", ["Walk", "Feeding", "Meds", "Grooming", "Enrichment"])
-            duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
-            priority = st.selectbox("Priority", ["High", "Medium", "Low"], index=2)
-            scheduled_time = st.time_input("Scheduled Time", value=datetime.now().time())
-            
-        submitted_task = st.form_submit_button("Add Task")
-        
-        if submitted_task:
-            if task_id and task_description:
-                # Combine today's date with the selected time
-                task_datetime = datetime.combine(datetime.now().date(), scheduled_time)
-                new_task = Task(
-                    task_id=task_id,
-                    pet_id=target_pet_id,
-                    description=task_description,
-                    category=category,
-                    duration_minutes=int(duration),
-                    priority=priority,
-                    scheduled_time=task_datetime
-                )
-                try:
-                    # Capture warning from scheduler.schedule_task
-                    warning_msg = scheduler.schedule_task(new_task)
-                    if warning_msg:
-                        st.warning(warning_msg)
-                    st.success(f"Successfully added task for {selected_pet_name}!")
-                except Exception as e:
-                    st.error(f"Error: {e}")
-            else:
-                st.warning("Please provide a Task ID and Description.")
+tab_tasks, tab_ai = st.tabs(["📋 Tasks & Schedule", "🤖 AI RAG Pet Advisor"])
 
-st.divider()
+with tab_tasks:
+    # --- Main App Inputs: Quick Task Creator ---
+    st.subheader("Quick Task Creator")
+    st.caption("Add tasks to your registered pets to feed into the smart scheduler.")
 
-# --- Filter & Display Household Tasks using Scheduler methods ---
-st.subheader("📋 Current Household Tasks")
-
-all_tasks = scheduler.owner.get_all_tasks()
-if all_tasks:
-    # Optional filtering controls
-    f_col1, f_col2 = st.columns(2)
-    with f_col1:
-        filter_status = st.selectbox("Filter by Status", ["All", "Pending", "Completed"])
-    with f_col2:
-        pet_filter_options = ["All"] + [p.name for p in scheduler.owner.pets.values()]
-        filter_pet = st.selectbox("Filter by Pet", pet_filter_options)
-        
-    # Translate UI filters to parameters for scheduler.filter_tasks()
-    status_bool = None
-    if filter_status == "Pending":
-        status_bool = False
-    elif filter_status == "Completed":
-        status_bool = True
-        
-    pet_name_arg = filter_pet if filter_pet != "All" else None
-    
-    # Use Scheduler filter and sort methods
-    filtered_tasks = scheduler.filter_tasks(is_completed=status_bool, pet_name=pet_name_arg)
-    sorted_tasks = scheduler.sort_by_time(filtered_tasks)
-    
-    if sorted_tasks:
-        task_data = []
-        for t in sorted_tasks:
-            pet_name = scheduler.owner.pets[t.pet_id].name if t.pet_id in scheduler.owner.pets else "Unknown"
-            task_data.append({
-                "Time": t.scheduled_time.strftime("%I:%M %p"),
-                "Pet": pet_name,
-                "Description": t.description,
-                "Category": t.category,
-                "Duration": f"{t.duration_minutes}m",
-                "Priority": t.priority,
-                "Status": "Completed" if t.is_completed else "Pending"
-            })
-        st.table(task_data)
+    if not scheduler.owner.pets:
+        st.warning("⚠️ Please register at least one pet in the sidebar before adding tasks.")
     else:
-        st.info("No tasks match the selected filter criteria.")
-else:
-    st.info("No tasks created yet.")
-
-st.divider()
-
-# --- Build Schedule Integration ---
-st.subheader("⚡ Build Optimized Schedule")
-st.caption("Generate your optimized daily plan based on your owner preferences and priorities.")
-
-if st.button("Generate Schedule"):
-    if not all_tasks:
-        st.warning("Please add at least one task before generating a schedule.")
-    else:
-        plan = scheduler.generate_daily_plan()
-        
-        st.info(f"💡 **Plan Explanation:**\n\n{plan['explanation']}")
-        
-        st.markdown("### 📋 Optimized Daily Plan Results:")
-        
-        for idx, task in enumerate(plan["schedule"], 1):
-            pet_obj = scheduler.owner.pets.get(task.pet_id)
-            pet_name = pet_obj.name if pet_obj else "Unknown"
-            time_str = task.scheduled_time.strftime("%I:%M %p")
+        with st.form("task_creation_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                pet_choices = {p.name: p.pet_id for p in scheduler.owner.pets.values()}
+                selected_pet_name = st.selectbox("Assign to Pet", list(pet_choices.keys()))
+                target_pet_id = pet_choices[selected_pet_name]
+                
+                task_id = st.text_input("Task ID", value=f"t{len(scheduler.owner.get_all_tasks()) + 1}")
+                task_description = st.text_input("Task Description", value="Morning walk")
+                
+            with col2:
+                category = st.selectbox("Category", ["Walk", "Feeding", "Meds", "Grooming", "Enrichment"])
+                duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
+                priority = st.selectbox("Priority", ["High", "Medium", "Low"], index=2)
+                scheduled_time = st.time_input("Scheduled Time", value=datetime.now().time())
+                
+            submitted_task = st.form_submit_button("Add Task")
             
-            with st.expander(f"{idx}. [{task.priority.upper()}] {task.description} — {pet_name} ({time_str})"):
-                st.write(f"**Category:** {task.category}")
-                st.write(f"**Duration:** {task.duration_minutes} minutes")
-                st.write(f"**Frequency:** {task.frequency}")
-                st.write(f"**Special Pet Notes:** {pet_obj.special_notes if pet_obj and pet_obj.special_notes else 'None'}")
+            if submitted_task:
+                if task_id and task_description:
+                    task_datetime = datetime.combine(datetime.now().date(), scheduled_time)
+                    new_task = Task(
+                        task_id=task_id,
+                        pet_id=target_pet_id,
+                        description=task_description,
+                        category=category,
+                        duration_minutes=int(duration),
+                        priority=priority,
+                        scheduled_time=task_datetime
+                    )
+                    try:
+                        warning_msg = scheduler.schedule_task(new_task)
+                        if warning_msg:
+                            st.warning(warning_msg)
+                        st.success(f"Successfully added task for {selected_pet_name}!")
+                    except Exception as e:
+                        st.error(f"Error: {e}")
+                else:
+                    st.warning("Please provide a Task ID and Description.")
+
+    st.divider()
+
+    # --- Filter & Display Household Tasks using Scheduler methods ---
+    st.subheader("📋 Current Household Tasks")
+
+    all_tasks = scheduler.owner.get_all_tasks()
+    if all_tasks:
+        f_col1, f_col2 = st.columns(2)
+        with f_col1:
+            filter_status = st.selectbox("Filter by Status", ["All", "Pending", "Completed"])
+        with f_col2:
+            pet_filter_options = ["All"] + [p.name for p in scheduler.owner.pets.values()]
+            filter_pet = st.selectbox("Filter by Pet", pet_filter_options)
+            
+        status_bool = None
+        if filter_status == "Pending":
+            status_bool = False
+        elif filter_status == "Completed":
+            status_bool = True
+            
+        pet_name_arg = filter_pet if filter_pet != "All" else None
+        
+        filtered_tasks = scheduler.filter_tasks(is_completed=status_bool, pet_name=pet_name_arg)
+        sorted_tasks = scheduler.sort_by_time(filtered_tasks)
+        
+        if sorted_tasks:
+            task_data = []
+            for t in sorted_tasks:
+                pet_name = scheduler.owner.pets[t.pet_id].name if t.pet_id in scheduler.owner.pets else "Unknown"
+                task_data.append({
+                    "Time": t.scheduled_time.strftime("%I:%M %p"),
+                    "Pet": pet_name,
+                    "Description": t.description,
+                    "Category": t.category,
+                    "Duration": f"{t.duration_minutes}m",
+                    "Priority": t.priority,
+                    "Status": "Completed" if t.is_completed else "Pending"
+                })
+            st.table(task_data)
+        else:
+            st.info("No tasks match the selected filter criteria.")
+    else:
+        st.info("No tasks created yet.")
+
+    st.divider()
+
+    # --- Build Schedule Integration ---
+    st.subheader("⚡ Build Optimized Schedule")
+    st.caption("Generate your optimized daily plan based on your owner preferences and priorities.")
+
+    if st.button("Generate Schedule"):
+        if not all_tasks:
+            st.warning("Please add at least one task before generating a schedule.")
+        else:
+            plan = scheduler.generate_daily_plan()
+            
+            st.info(f"💡 **Plan Explanation:**\n\n{plan['explanation']}")
+            
+            st.markdown("### 📋 Optimized Daily Plan Results:")
+            
+            for idx, task in enumerate(plan["schedule"], 1):
+                pet_obj = scheduler.owner.pets.get(task.pet_id)
+                pet_name = pet_obj.name if pet_obj else "Unknown"
+                time_str = task.scheduled_time.strftime("%I:%M %p")
+                
+                with st.expander(f"{idx}. [{task.priority.upper()}] {task.description} — {pet_name} ({time_str})"):
+                    st.write(f"**Category:** {task.category}")
+                    st.write(f"**Duration:** {task.duration_minutes} minutes")
+                    st.write(f"**Frequency:** {task.frequency}")
+                    st.write(f"**Special Pet Notes:** {pet_obj.special_notes if pet_obj and pet_obj.special_notes else 'None'}")
+
+with tab_ai:
+    st.subheader("🤖 RAG-Powered AI Pet Care Advisor")
+    st.caption("Ask questions about pet care, exercise, or nutrition. The AI retrieves relevant veterinary knowledge from its internal knowledge base before responding.")
+
+    user_query = st.text_input("What would you like advice on?", value="How long should I walk my dog and what are heat safety rules?")
+    
+    if st.button("Consult AI Advisor"):
+        if not scheduler.owner.pets:
+            st.warning("⚠️ Please register at least one pet in the sidebar first so the AI has context.")
+        else:
+            with st.spinner("Searching veterinary knowledge base and synthesizing advice..."):
+                result = scheduler.consult_ai_advisor(user_query)
+                
+                st.success("AI Analysis Complete!")
+                st.markdown(result["answer"])
+                
+                if result["sources"]:
+                    st.info(f"🔍 **RAG Knowledge Sources Retrieved:** {', '.join(result['sources'])}")
