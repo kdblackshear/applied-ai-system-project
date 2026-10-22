@@ -85,4 +85,4 @@ Testing Summary:
     In terms of things that did not work, there was an inital bug with filtering mutiple pet's completed tasks. These completed task were being hidden incorrectly across pets. To fix it, the task filtering had to be made a single-pass across all pet objects. From this, I learned that relying solely on generative AI is not smart because it is untrustworthy for exact math. Using a hybrid of deterministic code and AI for logic and reasoning, respectively, is a much more reliable arichitecture. 
 
 Reflection:
-    
+    Building Pawpal+ : AI-Powered Pet Care Planner gave me insight into how AI can and should be incorporated into programs, as well as the value it hold for the user of the program. Using RAG has taught me that designing using AI system requires a level of anticipation and thorough thinking when it comes to safety risks, guardarails, and guaranteeting a relaible solution. 
