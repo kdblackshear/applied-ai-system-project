@@ -1,0 +1,39 @@
+kahlynblackshear@Kahlyns-MacBook-Air applied-ai-system-project % streamlit run app.py
+2026-10-23 12:56:02.544 Uvicorn server started on :::8501
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://172.20.20.20:8501
+
+  Help agents write better Streamlit apps?
+  Install the official Streamlit skills by running streamlit skills in your terminal.
+
+  For better performance, install the Watchdog module:
+
+  $ xcode-select --install
+  $ pip install watchdog
+            
+2026-10-23 12:57:31,363 [INFO] RAG Retrieved 2 documents for query: 'How long should I walk my dog and what are heat safety rules?'
+2026-10-23 12:58:13,817 [INFO] RAG Retrieved 2 documents for query: 'How much medicine should I give Hershey?'
+^C  Stopping...
+kahlynblackshear@Kahlyns-MacBook-Air applied-ai-system-project % pip install pytest
+zsh: command not found: pip
+kahlynblackshear@Kahlyns-MacBook-Air applied-ai-system-project % python3 -m pip install 
+pytest
+Requirement already satisfied: pytest in /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages (9.1.1)
+Requirement already satisfied: iniconfig>=1.0.1 in /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages (from pytest) (2.3.0)
+Requirement already satisfied: packaging>=22 in /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages (from pytest) (26.3)
+Requirement already satisfied: pluggy<2,>=1.5 in /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages (from pytest) (1.6.0)
+Requirement already satisfied: pygments>=2.7.2 in /Library/Frameworks/Python.framework/Versions/3.14/lib/python3.14/site-packages (from pytest) (2.21.0)
+kahlynblackshear@Kahlyns-MacBook-Air applied-ai-system-project % pytest
+================================= test session starts ==================================
+platform darwin -- Python 3.14.7, pytest-9.1.1, pluggy-1.6.0
+rootdir: /Users/kahlynblackshear/Documents/GitHub/applied-ai-system-project
+plugins: anyio-4.14.2
+collected 8 items                                                                      
+
+test_pawpal.py ........                                                          [100%]
+
+================================== 8 passed in 0.02s ===================================
+kahlynblackshear@Kahlyns-MacBook-Air applied-ai-system-project % 
